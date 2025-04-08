@@ -3,6 +3,22 @@ from fastapi import FastAPI
 from app.setting.startup import load_resources
 from app.endpoints import recommend
 
+# CORS 설정
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "*",
+]
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app = FastAPI(
     title="AI Improvement Recommendation API",
     description="FastAPI를 이용해 Two-Tower 개선 모델을 서빙합니다.",
