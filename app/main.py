@@ -2,6 +2,8 @@
 from fastapi import FastAPI
 from app.setting.startup import load_resources
 from app.endpoints import recommend
+import logging
+import os
 
 # CORS 설정
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,18 +21,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app = FastAPI(
-    title="AI Improvement Recommendation API",
-    description="FastAPI를 이용해 Two-Tower 개선 모델을 서빙합니다.",
-    version="0.1.0",
-)
+app = FastAPI(title="ESG 개선활동 추천 서비스", version="1.0")
 
 app.include_router(recommend.router, prefix="/recommend", tags=["Recommendation"])
 
 
 @app.on_event("startup")
 async def startup_event():
-    load_resources(app)
+    load_resources()
 
 
 if __name__ == "__main__":
