@@ -58,6 +58,7 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
             ranks, sims_sorted, curve="convex", direction="decreasing"
         )
         k = kneedle.knee or per_k
+        print(f"[recommend_improvements] facility={facility}, elbow_k={k}")
 
         # — 5) Top-K 후보 추출 —
         idxs = np.argsort(cos_sim)[-k:][::-1]
@@ -66,14 +67,23 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
         cand_d["facility"] = facility
         all_cands.append(cand_d)
 
-    # — 6) 모든 설비 결과 합치기 및 중복 제거 —
-    final_df = (
-        pd.concat(all_cands, ignore_index=True)
-        .sort_values("similarity", ascending=False)
-        .drop_duplicates()
-        .reset_index(drop=True)
+    # — 6) 모든 설비 결과 합치기 —
+    combined = pd.concat(all_cands, ignore_index=True)
+
+    # — 노이즈(cluster == -1)와 나머지 분리 —
+    noise_df = combined[combined["cluster"] == -1]
+    rest_df = combined[combined["cluster"] != -1]
+
+    # — 나머지에만 중복 제거 —
+    rest_df = rest_df.sort_values("similarity", ascending=False).drop_duplicates()
+
+    # — 다시 합치고 인덱스 리셋 —
+    final_df = pd.concat([rest_df, noise_df], ignore_index=True)
+    final_df = final_df.sort_values("similarity", ascending=False).reset_index(
+        drop=True
     )
 
+    # — 업종 필터 (기존) —
     if industry:
         final_df = final_df[final_df["업종"] == industry]
 
