@@ -74,6 +74,9 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
         .reset_index(drop=True)
     )
 
+    if industry:
+        final_df = final_df[final_df["업종"] == industry]
+
     return final_df
 
 
