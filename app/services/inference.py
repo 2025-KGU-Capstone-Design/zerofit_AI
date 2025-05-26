@@ -82,22 +82,61 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
 
 def recommend_by_focus(cand_df, focus: str, k: int):
     """
-    cand_df: recommend_improvements 반환 DataFrame
+    cand_df: recommend_improvements 반환 DataFrame (cluster 포함)
     focus: "balanced" | "roi" | "saving" | "ghg"
     """
+    # — 0) 동일 클러스터 그룹화 —
+    if "cluster" in cand_df.columns:
+        # 수치형은 평균, 카테고리형은 첫 번째 값 유지
+        agg_funcs = {
+            "similarity": "mean",
+            "투자비": "mean",
+            "절감액": "mean",
+            "투자비회수기간": "mean",
+            "온실가스감축량": "mean",
+        }
+        first_funcs = {
+            "대상설비": "first",
+            "개선활동명_요약": "first",
+            "업종": "first",
+            "개선구분": "first",
+            "cluster": "first",
+        }
+        grouped = cand_df.groupby("cluster", as_index=False).agg(
+            {**agg_funcs, **first_funcs}
+        )
+    else:
+        grouped = cand_df.copy()
+
+    # — 1) 정렬 기준에 따라 —
     if focus == "balanced":
-        sorted_df = cand_df.sort_values("similarity", ascending=False)
+        sorted_df = grouped.sort_values("similarity", ascending=False)
     elif focus == "roi":
-        sorted_df = cand_df.assign(
-            roi=cand_df["절감액"] / cand_df["투자비"]
-        ).sort_values("roi", ascending=False)
+        sorted_df = grouped.assign(roi=lambda d: d["절감액"] / d["투자비"]).sort_values(
+            "roi", ascending=False
+        )
     elif focus == "saving":
-        sorted_df = cand_df.sort_values("절감액", ascending=False)
+        sorted_df = grouped.sort_values("절감액", ascending=False)
     elif focus == "ghg":
-        sorted_df = cand_df.sort_values("온실가스감축량", ascending=False)
+        sorted_df = grouped.sort_values("온실가스감축량", ascending=False)
     else:
         raise ValueError(f"Unknown focus: {focus}")
-    return sorted_df.head(k).to_dict(orient="records")
+
+    # — 2) 상위 k개만 뽑아서 dict로 리턴 —
+    # 필요한 컬럼만 골라서 반환합니다.
+    cols_to_return = [
+        "cluster",
+        "개선활동명_요약",
+        "업종",
+        "대상설비",
+        "개선구분",
+        "similarity",
+        "투자비",
+        "절감액",
+        "투자비회수기간",
+        "온실가스감축량",
+    ]
+    return sorted_df[cols_to_return].head(k).to_dict(orient="records")
 
 
 def recommend_all(input_data: dict, per_k: int):
