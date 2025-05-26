@@ -89,53 +89,95 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
     return combined.reset_index(drop=True)
 
 
-def recommend_by_focus(cand_df, focus: str, k: int):
+def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
     """
     cand_df: recommend_improvements 반환 DataFrame
-    focus: "balanced" | "roi" | "saving" | "ghg"
+    focus: "similarity" (정렬: 유사도) | "balanced" (정렬: 복합지표) | "roi" | "saving" | "ghg"
     """
-    if focus == "balanced":
-        df_sorted = cand_df.sort_values("similarity", ascending=False)
+    if focus == "similarity":
+        sorted_df = cand_df.sort_values("similarity", ascending=False)
+    elif focus == "balanced":
+        dfc = cand_df.copy()
+        feats = ["투자비", "절감액", "투자비회수기간", "온실가스감축량"]
+
+        # 1) 각 지표별 평균을 추출
+        means = {f: dfc[f].mean() for f in feats}
+
+        # 2) 평균값을 min–max 정규화 (투자비, 투자비회수기간은 역정규화)
+        norm_means = {}
+        for f, m in means.items():
+            col = dfc[f]
+            mn, mx = col.min(), col.max()
+            if mx > mn:
+                norm = (m - mn) / (mx - mn)
+            else:
+                norm = 0
+            # cost & payback: lower is better => invert
+            if f in ["투자비", "투자비회수기간"]:
+                norm = 1 - norm
+            norm_means[f] = norm
+
+        # 3) 정규화된 평균값을 합산해서 가중치로 변환
+        total = sum(norm_means.values())
+        weights = {
+            f: (norm_means[f] / total if total > 0 else 1 / len(feats)) for f in feats
+        }
+
+        # 4) 다시 전체 행을 정규화하고 balanced_score 계산
+        for f in feats:
+            mn, mx = dfc[f].min(), dfc[f].max()
+            if mx > mn:
+                norm_col = (dfc[f] - mn) / (mx - mn)
+            else:
+                norm_col = 0
+            # invert cost & payback
+            if f in ["투자비", "투자비회수기간"]:
+                dfc[f + "_norm"] = 1 - norm_col
+            else:
+                dfc[f + "_norm"] = norm_col
+
+        dfc["balanced_score"] = sum(dfc[f + "_norm"] * w for f, w in weights.items())
+        sorted_df = dfc.sort_values("balanced_score", ascending=False)
     elif focus == "roi":
-        df_sorted = cand_df.assign(roi=lambda d: d["절감액"] / d["투자비"]).sort_values(
+        sorted_df = cand_df.assign(roi=lambda d: d["절감액"] / d["투자비"]).sort_values(
             "roi", ascending=False
         )
     elif focus == "saving":
-        df_sorted = cand_df.sort_values("절감액", ascending=False)
+        sorted_df = cand_df.sort_values("절감액", ascending=False)
     elif focus == "ghg":
-        df_sorted = cand_df.sort_values("온실가스감축량", ascending=False)
+        sorted_df = cand_df.sort_values("온실가스감축량", ascending=False)
     else:
         raise ValueError(f"Unknown focus: {focus}")
 
-    cols = [
-        "cluster",
-        "개선활동명_요약",
-        "업종",
-        "대상설비",
-        "개선구분",
-        "similarity",
-        "투자비",
-        "절감액",
-        "투자비회수기간",
-        "온실가스감축량",
+    # 공통 반환 컬럼
+    cols = ["cluster", "개선활동명_요약", "업종", "대상설비", "개선구분"]
+    if focus == "balanced":
+        cols += ["balanced_score"]
+    cols += ["similarity", "투자비", "절감액", "투자비회수기간", "온실가스감축량"]
+    result = sorted_df[cols].head(k).copy()
+
+    # 수치형(balanced_score, 투자비, 절감액, 투자비회수기간, 온실가스감축량)만 반올림
+    round_cols = [
+        c
+        for c in [
+            "투자비",
+            "절감액",
+            "투자비회수기간",
+            "온실가스감축량",
+        ]
+        if c in result.columns
     ]
-    result = df_sorted[cols].head(k).copy()
-    result[["similarity", "투자비", "절감액", "투자비회수기간", "온실가스감축량"]] = (
-        result[
-            ["similarity", "투자비", "절감액", "투자비회수기간", "온실가스감축량"]
-        ].round(1)
-    )
+    result[round_cols] = result[round_cols].round(1)
+
     return result.to_dict(orient="records")
 
 
 def recommend_all(input_data: dict, per_k: int):
-    """
-    4가지 관점별로 각각 per_k개씩 추천 결과 반환
-    """
-    cand_df = recommend_improvements(input_data)
+    df_cand = recommend_improvements(input_data, per_k)
     return {
-        "balanced": recommend_by_focus(cand_df, "balanced", per_k),
-        "roi": recommend_by_focus(cand_df, "roi", per_k),
-        "saving": recommend_by_focus(cand_df, "saving", per_k),
-        "ghg": recommend_by_focus(cand_df, "ghg", per_k),
+        "similarity": recommend_by_focus(df_cand, "similarity", per_k),
+        "balanced": recommend_by_focus(df_cand, "balanced", per_k),
+        "roi": recommend_by_focus(df_cand, "roi", per_k),
+        "saving": recommend_by_focus(df_cand, "saving", per_k),
+        "ghg": recommend_by_focus(df_cand, "ghg", per_k),
     }
