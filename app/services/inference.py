@@ -136,7 +136,13 @@ def recommend_by_focus(cand_df, focus: str, k: int):
         "투자비회수기간",
         "온실가스감축량",
     ]
-    return sorted_df[cols_to_return].head(k).to_dict(orient="records")
+    result_df = sorted_df[cols_to_return].head(k).copy()
+
+    # 수치형 컬럼만 소수점 한 자리로 반올림
+    num_cols = ["similarity", "투자비", "절감액", "투자비회수기간", "온실가스감축량"]
+    result_df[num_cols] = result_df[num_cols].round(1)
+
+    return result_df.to_dict(orient="records")
 
 
 def recommend_all(input_data: dict, per_k: int):
