@@ -6,9 +6,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 모델 파일 경로
 VEC_DIR = os.getenv(
     "VEC_DIR",
-    os.path.join(BASE_DIR, "data"),
+    os.path.join(BASE_DIR, "data2"),
 )
 CLUSTERING_DIR = os.getenv(
     "CLUSTERING_DIR",
-    os.path.join(BASE_DIR, "data"),
+    os.path.join(BASE_DIR, "data2"),
 )
