@@ -169,15 +169,43 @@ def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
     ]
     result[round_cols] = result[round_cols].round(1)
 
+    # 점수 (balanced_score)도 반올림
+    if "balanced_score" in result.columns:
+        result["balanced_score"] = result["balanced_score"].round(3)
+
     return result.to_dict(orient="records")
 
 
 def recommend_all(input_data: dict, per_k: int):
     df_cand = recommend_improvements(input_data, per_k)
-    return {
-        "similarity": recommend_by_focus(df_cand, "similarity", per_k),
-        "balanced": recommend_by_focus(df_cand, "balanced", per_k),
-        "roi": recommend_by_focus(df_cand, "roi", per_k),
-        "saving": recommend_by_focus(df_cand, "saving", per_k),
-        "ghg": recommend_by_focus(df_cand, "ghg", per_k),
+
+    solution = []
+
+    type_mapping = {
+        "balanced": "total_optimization",
+        "ghg": "emission_reduction",
+        "saving": "cost_saving",
+        "roi": "roi",
     }
+
+    for focus in ["balanced", "ghg", "saving", "roi"]:
+        recs = recommend_by_focus(df_cand, focus, per_k)
+        for idx, item in enumerate(recs, start=1):
+            solution_item = {
+                "id": None,
+                "type": type_mapping[focus],
+                "rank": idx,
+                "score": item.get("balanced_score") if focus == "balanced" else None,
+                "industry": item.get("업종"),
+                "improvementType": item.get("개선구분"),
+                "facility": item.get("대상설비"),
+                "activity": item.get("개선활동명_요약"),
+                "emissionReduction": item.get("온실가스감축량"),
+                "costSaving": item.get("절감액"),
+                "roiPeriod": item.get("투자비회수기간"),
+                "investmentCost": item.get("투자비"),
+                "bookmark": None,
+            }
+            solution.append(solution_item)
+
+    return {"solution": solution}
