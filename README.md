@@ -37,7 +37,7 @@ Swagger UI: http://localhost:8000/docs
 ## Endpoint
 ### /recommend 
 
-사용자 입력과 후보 데이터셋을 기반으로 AI 모델이 예측한 결과를 바탕으로 여러 기준(투자비회수기간, 투자비, 온실가스감축량)으로 상위 10개의 추천 결과를 반환.
+사용자 입력과 후보 데이터셋을 기반으로 AI 모델이 예측한 결과를 바탕으로 여러 기준(종합 점수, 투자비회수기간, 투자비, 온실가스감축량)으로 상위 4개씩의의 추천 결과를 반환.
 
 ---
 
@@ -49,37 +49,115 @@ Swagger UI: http://localhost:8000/docs
 
   ```json
   {
-      "업종": "제조업 - 식품",
-      "대상설비": ["공기 압축기 설비"],
-      "투자비": 50,
-      "투자비회수기간": 3,
-      "온실가스감축량": 18
+    "industry": '',                   // 산업군 (string)
+    "targetFacilities": [],           // 대상설비 목록 (string[])
+    "availableInvestment": 0,    // 투자가능금액 (백 만원, number)
+    "currentEmission": 0,             // 현재 배출량 (tCO2eq, number)
+    "targetEmission": 0,              // 목표 배출량 (tCO2eq, number)
+    "targetRoiPeriod": 0,     // 목표 ROI 기간 (년, number)
   }
   
  #### 예시 응답 (Example Response)
  ```
- {
-  "투자비회수기간_상위10": [
-    {
-      "대상설비": "공기 압축기 설비",
-      "투자비": 50,
-      "온실가스감축량": 18,
-      "예측투자비": 45.2,
-      "예측투자비회수기간": 2.7,
-      "예측절감액": 100.0,
-      "예측온실가스감축량": 20.5,
-      "개선구분": "A",
-      "개선활동명": "Activity A"
-    }
-    // ... (최대 10개 항목)
-  ],
-  "투자비낮은_상위10": [
-    // 추천 결과 항목 (위와 유사한 구조)
-  ],
-  "온실가스감축량높은_상위10": [
-    // 추천 결과 항목 (위와 유사한 구조)
-  ]
-}
+  {
+    "solution": [
+      {
+        "id": 1,
+        "type": "total_optimization",
+        "rank": 1,
+        "score": 95.5,
+        "industry": "제조업"
+        "improvementType": "설비 개선",
+        "facility": "보일러",
+        "activity": "고효율 보일러 교체",
+        "industry": "철강"
+        "emissionReduction": 120.5,
+        "costSaving": 3000.0,
+        "roiPeriod": 2.5,
+        "investmentCost": 750.0,
+        "bookmark": false
+      },
+      {
+        ...
+      },
+
+      {
+        "id": 5,
+        "type": "emission_reduction",
+        "rank": 1,
+        "score": null,
+        "industry": "제조업"
+        "improvementType": "설비 개선",
+        "facility": "보일러",
+        "activity": "고효율 보일러 교체",
+        "industry": "식품"
+        "emissionReduction": 130.0,
+        "costSaving": 3100.0,
+        "roiPeriod": 2.0,
+        "investmentCost": 700.0,
+        "bookmark": false
+      },
+      {
+        ...
+      },
+
+      {
+        "id": 9,
+        "type": "cost_saving",
+        "rank": 1,
+        "score": null,
+        "industry": "제조업"
+        "improvementType": "설비 개선",
+        "facility": "보일러",
+        "activity": "고효율 보일러 교체",
+        "industry": "식품"
+        "emissionReduction": 125.0,
+        "costSaving": 3200.0,
+        "roiPeriod": 2.3,
+        "investmentCost": 720.0,
+        "bookmark": false
+      },
+      {
+        "id": 10,
+        "type": "cost_saving",
+        "rank": 2,
+        "score": null,
+        "industry": "제조업"
+        "improvementType": "공정 개선",
+        "facility": "냉동기",
+        "activity": "효율적 냉각 시스템 도입",
+        "industry": "요업"
+        "emissionReduction": 105.0,
+        "costSaving": 2700.0,
+        "roiPeriod": 2.9,
+        "investmentCost": 610.0,
+        "bookmark": false
+      },
+      {
+        ...
+      },
+
+      {
+        "id": 13,
+        "type": "roi",
+        "rank": 1,
+        "score": null,
+        "industry": "제조업"
+        "improvementType": "설비 개선",
+        "facility": "보일러",
+        "activity": "고효율 보일러 교체",
+        "industry": "폐기물"
+        "emissionReduction": 115.0,
+        "costSaving": 2900.0,
+        "roiPeriod": 2.4,
+        "investmentCost": 710.0,
+        "bookmark": false
+      },
+      {
+        ...
+      }
+    ]
+  }
 
 ```
  
