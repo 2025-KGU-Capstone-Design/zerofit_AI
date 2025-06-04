@@ -21,9 +21,9 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
     """
     # — 입력값 파싱 및 수치 계산 —
     industry = input_data.get("industry", "")
-    facilities = input_data.get("ownedFacilities", [])
-    invest = float(input_data.get("investmentBudget", 0.0))
-    roi_months = float(input_data.get("targetRoiPeriod", 0.0))
+    facilities = input_data.get("targetFacilities", [])
+    invest = float(input_data.get("availableInvestment") or 0.0)
+    roi_months = float(input_data.get("targetRoiPeriod") or 0.0)
     current_em = float(input_data.get("currentEmission", 0.0))
     target_em = float(input_data.get("targetEmission", 0.0))
 
