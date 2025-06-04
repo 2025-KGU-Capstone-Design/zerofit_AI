@@ -1,21 +1,21 @@
 ## 서버 구조
 ```
-project_name/
+zerofit_AI/
 ├── app/
-│   ├── main.py                    
-│   ├── endpoint/
-│   │   └── recommend.py        # 추천 API 엔드포인트 (/recommend)
+│   ├── data/                  # 모델 파일 및 전처리 데이터
+│   ├── endpoints/
+│   │   └── recommend.py       # 추천 API 엔드포인트
 │   ├── models/
-│   │   └── model.py                # 모델 인스턴스 생성 및 load_model() 함수
-│   │   └── model_arch.py         # 모델 아키텍처
-│   │   └── two_tower_improvement_model.pth  # 모델 파일
-│   ├── setting/                       
-│   │   ├── config.py		# 경로 설정
-│   │   └── startup.py		# 실행 시 모델 설정
-│   └── services/
-│       └── inference.py            # recommend_improvements() 포함, 전처리/후처리 등 로직
-├── .gitignore				
-└── requirements.txt			# 의존성 설치
+│   │   └── model.py           # 모델 로딩 함수
+│   ├── services/
+│   │   └── inference.py       # 추천 로직 구현
+│   ├── setting/
+│   │   ├── config.py          # 경로 설정 파일
+│   │   └── startup.py         # 실행 시 초기화 스크립트
+│   └── main.py                # FastAPI 애플리케이션 엔트리포인트
+├── requirements.txt
+├── .gitignore
+└── README.md
 
 ```
 
