@@ -57,107 +57,268 @@ Swagger UI: http://localhost:8000/docs
     "targetRoiPeriod": 0,     // 목표 ROI 기간 (년, number)
   }
   
+ #### 예시 요청 (Example Request)
+ ```
+  {
+    "industry": "전기전자",
+    "targetFacilities": [
+      "공기 압축기 설비",
+      "열사용설비"
+    ],
+    "availableInvestment": 6.6,
+    "currentEmission": 100,
+    "targetEmission": 90,
+    "targetRoiPeriod": 0.8
+  }
+ ```
+
  #### 예시 응답 (Example Response)
  ```
   {
-    "solution": [
-      {
-        "id": 1,
-        "type": "total_optimization",
-        "rank": 1,
-        "score": 95.5,
-        "industry": "제조업"
-        "improvementType": "설비 개선",
-        "facility": "보일러",
-        "activity": "고효율 보일러 교체",
-        "industry": "철강"
-        "emissionReduction": 120.5,
-        "costSaving": 3000.0,
-        "roiPeriod": 2.5,
-        "investmentCost": 750.0,
-        "bookmark": false
-      },
-      {
-        ...
-      },
-
-      {
-        "id": 5,
-        "type": "emission_reduction",
-        "rank": 1,
-        "score": null,
-        "industry": "제조업"
-        "improvementType": "설비 개선",
-        "facility": "보일러",
-        "activity": "고효율 보일러 교체",
-        "industry": "식품"
-        "emissionReduction": 130.0,
-        "costSaving": 3100.0,
-        "roiPeriod": 2.0,
-        "investmentCost": 700.0,
-        "bookmark": false
-      },
-      {
-        ...
-      },
-
-      {
-        "id": 9,
-        "type": "cost_saving",
-        "rank": 1,
-        "score": null,
-        "industry": "제조업"
-        "improvementType": "설비 개선",
-        "facility": "보일러",
-        "activity": "고효율 보일러 교체",
-        "industry": "식품"
-        "emissionReduction": 125.0,
-        "costSaving": 3200.0,
-        "roiPeriod": 2.3,
-        "investmentCost": 720.0,
-        "bookmark": false
-      },
-      {
-        "id": 10,
-        "type": "cost_saving",
-        "rank": 2,
-        "score": null,
-        "industry": "제조업"
-        "improvementType": "공정 개선",
-        "facility": "냉동기",
-        "activity": "효율적 냉각 시스템 도입",
-        "industry": "요업"
-        "emissionReduction": 105.0,
-        "costSaving": 2700.0,
-        "roiPeriod": 2.9,
-        "investmentCost": 610.0,
-        "bookmark": false
-      },
-      {
-        ...
-      },
-
-      {
-        "id": 13,
-        "type": "roi",
-        "rank": 1,
-        "score": null,
-        "industry": "제조업"
-        "improvementType": "설비 개선",
-        "facility": "보일러",
-        "activity": "고효율 보일러 교체",
-        "industry": "폐기물"
-        "emissionReduction": 115.0,
-        "costSaving": 2900.0,
-        "roiPeriod": 2.4,
-        "investmentCost": 710.0,
-        "bookmark": false
-      },
-      {
-        ...
-      }
-    ]
-  }
+  {
+  "solution": [
+    {
+      "id": null,
+      "type": "total_optimization",
+      "rank": 1,
+      "score": 0.827,
+      "industry": "전기전자",
+      "improvementType": "기타설비보완",
+      "facility": "열사용설비",
+      "activity": "최종건조기 효율개선",
+      "emissionReduction": 2.2,
+      "costSaving": 1.7,
+      "roiPeriod": 3.3,
+      "investmentCost": 5.6,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "total_optimization",
+      "rank": 2,
+      "score": 0.826,
+      "industry": "전기전자",
+      "improvementType": "보온단열강화",
+      "facility": "열사용설비",
+      "activity": "원료 건조기 및 사출기 가열기 단열",
+      "emissionReduction": 3.3,
+      "costSaving": 3.1,
+      "roiPeriod": 3.2,
+      "investmentCost": 10,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "total_optimization",
+      "rank": 3,
+      "score": 0.824,
+      "industry": "전기전자",
+      "improvementType": "보온단열강화",
+      "facility": "열사용설비",
+      "activity": "노이용률 향상과 보온 강화로 방열손실 방지",
+      "emissionReduction": 5.2,
+      "costSaving": 4.1,
+      "roiPeriod": 3.2,
+      "investmentCost": 13.5,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "total_optimization",
+      "rank": 4,
+      "score": 0.82,
+      "industry": "전기전자",
+      "improvementType": "누증.누설방지",
+      "facility": "보일러",
+      "activity": "스팀밸브 누설증기 방지",
+      "emissionReduction": 0.6,
+      "costSaving": 0.8,
+      "roiPeriod": 3.7,
+      "investmentCost": 3,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "emission_reduction",
+      "rank": 1,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "배공기열회수",
+      "facility": "공조기 설비",
+      "activity": "배기공기열회수 위한 열관 설치",
+      "emissionReduction": 53.5,
+      "costSaving": 2,
+      "roiPeriod": 14.5,
+      "investmentCost": 29.7,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "emission_reduction",
+      "rank": 2,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "회전수제어설비도입",
+      "facility": "공기 압축기 설비",
+      "activity": "공기압축기 인버터 도입",
+      "emissionReduction": 28.8,
+      "costSaving": 24.2,
+      "roiPeriod": 7.7,
+      "investmentCost": 187,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "emission_reduction",
+      "rank": 3,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "신설비도입",
+      "facility": "공기 압축기 설비",
+      "activity": "인버터적용",
+      "emissionReduction": 22.9,
+      "costSaving": 17.3,
+      "roiPeriod": 5.8,
+      "investmentCost": 100,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "emission_reduction",
+      "rank": 4,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "신설비도입",
+      "facility": "공기 압축기 설비",
+      "activity": "2단 공기압축기로 교체",
+      "emissionReduction": 18.6,
+      "costSaving": 17,
+      "roiPeriod": 5.9,
+      "investmentCost": 100,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "cost_saving",
+      "rank": 1,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "회전수제어설비도입",
+      "facility": "공기 압축기 설비",
+      "activity": "공기압축기 인버터 도입",
+      "emissionReduction": 28.8,
+      "costSaving": 24.2,
+      "roiPeriod": 7.7,
+      "investmentCost": 187,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "cost_saving",
+      "rank": 2,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "노후설비대체",
+      "facility": "보일러",
+      "activity": "관리동 보일러 교체",
+      "emissionReduction": 14.8,
+      "costSaving": 17.5,
+      "roiPeriod": 7.9,
+      "investmentCost": 137.8,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "cost_saving",
+      "rank": 3,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "신설비도입",
+      "facility": "공기 압축기 설비",
+      "activity": "인버터적용",
+      "emissionReduction": 22.9,
+      "costSaving": 17.3,
+      "roiPeriod": 5.8,
+      "investmentCost": 100,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "cost_saving",
+      "rank": 4,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "노후설비대체",
+      "facility": "공기 압축기 설비",
+      "activity": "노후 공기압축기 교체로 압축 효율 향상",
+      "emissionReduction": 16,
+      "costSaving": 17,
+      "roiPeriod": 6.5,
+      "investmentCost": 110,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "roi",
+      "rank": 1,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "보온단열강화",
+      "facility": "열사용설비",
+      "activity": "원료 건조기 및 사출기 가열기 단열",
+      "emissionReduction": 3.3,
+      "costSaving": 3.1,
+      "roiPeriod": 3.2,
+      "investmentCost": 10,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "roi",
+      "rank": 2,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "기타설비보완",
+      "facility": "열사용설비",
+      "activity": "최종건조기 효율개선",
+      "emissionReduction": 2.2,
+      "costSaving": 1.7,
+      "roiPeriod": 3.3,
+      "investmentCost": 5.6,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "roi",
+      "rank": 3,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "보온단열강화",
+      "facility": "열사용설비",
+      "activity": "노이용률 향상과 보온 강화로 방열손실 방지",
+      "emissionReduction": 5.2,
+      "costSaving": 4.1,
+      "roiPeriod": 3.2,
+      "investmentCost": 13.5,
+      "bookmark": null
+    },
+    {
+      "id": null,
+      "type": "roi",
+      "rank": 4,
+      "score": null,
+      "industry": "전기전자",
+      "improvementType": "기타설비대체",
+      "facility": "열사용설비",
+      "activity": " 전기히터 난방기를 히트펌프형으로 대체",
+      "emissionReduction": 9.7,
+      "costSaving": 8.8,
+      "roiPeriod": 3.4,
+      "investmentCost": 30,
+      "bookmark": null
+    }
+  ]
+}
 
 ```
  
