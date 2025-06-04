@@ -2,17 +2,13 @@
 from fastapi import FastAPI
 from app.setting.startup import load_resources
 from app.endpoints import recommend
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 import os
 
-# CORS 설정
-from fastapi.middleware.cors import CORSMiddleware
+origins = ["*"]
 
-origins = [
-    "*",
-]
-
-app = FastAPI()
+app = FastAPI(title="ESG 개선활동 추천 서비스", version="1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -23,7 +19,7 @@ app.add_middleware(
 
 app = FastAPI(title="ESG 개선활동 추천 서비스", version="1.0")
 
-app.include_router(recommend.router, prefix="/recommend", tags=["Recommendation"])
+app.include_router(recommend.router, tags=["Recommendation"])
 
 
 @app.on_event("startup")
