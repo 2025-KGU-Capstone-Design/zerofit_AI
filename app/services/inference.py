@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from kneed import KneeLocator
+from .gpt_client import generate_comparison_comment
 
 from ..setting.startup import (
     encoder,
@@ -185,7 +186,6 @@ def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
 
 def recommend_all(input_data: dict, per_k: int):
     df_cand = recommend_improvements(input_data, per_k)
-
     solution = []
 
     type_mapping = {
@@ -196,7 +196,17 @@ def recommend_all(input_data: dict, per_k: int):
     }
 
     for focus in ["balanced", "ghg", "saving", "roi"]:
+        # 1) Focus별 추천 결과 가져오기
         recs = recommend_by_focus(df_cand, focus, per_k)
+
+        # 2) 상위 4개만 따로 추출 후, 전체 focus에 사용할 comment 생성
+        top4 = recs[:4] if len(recs) >= 4 else recs
+        comment_for_focus = None
+        if len(top4) >= 2:
+            # 모든 rank에 동일하게 사용할 comment를 생성
+            comment_for_focus = generate_comparison_comment(focus, top4)
+
+        # 3) solution 리스트에 항목 추가 (comment_for_focus를 모든 아이템에 사용)
         for idx, item in enumerate(recs, start=1):
             solution_item = {
                 "id": None,
@@ -212,6 +222,7 @@ def recommend_all(input_data: dict, per_k: int):
                 "roiPeriod": item.get("투자비회수기간"),
                 "investmentCost": item.get("투자비"),
                 "bookmark": None,
+                "comment": comment_for_focus,  # 이제 모든 rank에 동일한 comment가 들어갑니다.
             }
             solution.append(solution_item)
 
