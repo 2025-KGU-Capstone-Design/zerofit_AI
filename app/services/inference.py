@@ -10,6 +10,8 @@ from ..setting.startup import (
     df,
     ohe,
     scaler,
+    categorical_cols,
+    numeric_cols,
 )
 
 
@@ -34,8 +36,13 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
     all_cands = []
 
     for facility in facilities:
-        user_cat = ohe.transform([[industry, facility]])
-        user_num = scaler.transform([[invest, reduction, roi_months, ghg_reduction]])
+        input_cat = pd.DataFrame([[industry, facility]], columns=categorical_cols)
+        user_cat = ohe.transform(input_cat)
+
+        input_num = pd.DataFrame(
+            [[invest, reduction, roi_months, ghg_reduction]], columns=numeric_cols
+        )
+        user_num = scaler.transform(input_num)
         user_vec = np.hstack([user_cat, user_num]).astype("float32")
         user_latent = encoder.predict(user_vec)
         cos_sim = cosine_similarity(user_latent, latent_vectors)[0]

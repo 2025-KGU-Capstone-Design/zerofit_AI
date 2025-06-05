@@ -13,10 +13,18 @@ def load_resources():
     latent_vectors = np.load(f"{VEC_DIR}/latent_vectors.npy")
     df = pd.read_parquet(f"{CLUSTERING_DIR}/final_upscaled_with_clusters.parquet")
 
-    categorical_cols = ["업종", "대상설비"]
-    numeric_cols = ["투자비", "절감액", "투자비회수기간", "온실가스감축량"]
     ohe = joblib.load(f"{VEC_DIR}/ohe.pkl")  # ← 저장해둔 OHE 그대로 사용
     scaler = joblib.load(f"{VEC_DIR}/scaler.pkl")  # ← 저장해둔 Scaler 그대로 사용
+
+    if hasattr(ohe, "feature_names_in_"):
+        categorical_cols = list(ohe.feature_names_in_)
+    else:
+        categorical_cols = ["업종", "대상설비"]
+
+    if hasattr(scaler, "feature_names_in_"):
+        numeric_cols = list(scaler.feature_names_in_)
+    else:
+        numeric_cols = ["투자비", "절감액", "투자비회수기간", "온실가스감축량"]
 
 
 # 서버 시작 시 load_resources()를 호출하도록 변경
