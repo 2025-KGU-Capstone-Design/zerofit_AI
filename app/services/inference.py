@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from kneed import KneeLocator
-from .gpt_client import generate_comparison_comment
 
 from ..setting.startup import (
     encoder,
@@ -15,22 +14,22 @@ from ..setting.startup import (
     numeric_cols,
 )
 
-# 로깅 설정
-logging.basicConfig(level=logging.INFO)
+# Logging configuration
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
 def recommend_improvements(input_data: dict, per_k: int = 10):
     """
-    1) AutoEncoder + cosine similarity 로 후보군 생성
-       Top-K 는 엘보 포인트(knee) 로 결정하고, 감지되지 않으면 per_k 사용
-       2) 클러스터 단위로 집계(aggregation)하여 중복 제거 및 평균화
+    1) AutoEncoder + cosine similarity to generate candidate recommendations
+       Determine Top-K using the elbow point; if not detected, fall back to per_k
+       2) Aggregate by cluster to remove duplicates and average metrics
     """
     logger.info(
-        f"recommend_improvements 호출 - input_data: {input_data}, per_k: {per_k}"
+        f"recommend_improvements called - input_data: {input_data}, per_k: {per_k} (AI-driven recommendation)"
     )
 
-    # — 입력값 파싱 및 수치 계산 —
+    # — Parse input and compute numeric values —
     industry = input_data.get("industry", "")
     facilities = input_data.get("targetFacilities", [])
     invest = float(input_data.get("availableInvestment") or 0.0)
@@ -38,33 +37,35 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
     current_em = float(input_data.get("currentEmission", 0.0))
     target_em = float(input_data.get("targetEmission", 0.0))
 
-    # 절감액 계산 및 GHG 감축량 계산
+    # Calculate savings and GHG reduction
     reduction = invest / roi_months if roi_months > 0 else 0.0
     ghg_reduction = current_em - target_em
-    logger.debug(f"계산된 reduction: {reduction}, ghg_reduction: {ghg_reduction}")
+    logger.debug(f"Calculated reduction: {reduction}, GHG reduction: {ghg_reduction}")
 
     all_cands = []
 
     for facility in facilities:
-        logger.info(f"추천 후보 생성 - 처리 중인 설비: {facility}")
+        logger.info(
+            f"AI generating recommendation candidates - processing facility: {facility}"
+        )
         input_cat = pd.DataFrame([[industry, facility]], columns=categorical_cols)
         user_cat = ohe.transform(input_cat)
-        logger.debug(f"카테고리 원-핫 인코딩 결과 shape: {user_cat.shape}")
+        logger.debug(f"One-hot encoding of categorical data shape: {user_cat.shape}")
 
         input_num = pd.DataFrame(
             [[invest, reduction, roi_months, ghg_reduction]], columns=numeric_cols
         )
         user_num = scaler.transform(input_num)
-        logger.debug(f"스케일링된 수치형 데이터 shape: {user_num.shape}")
+        logger.debug(f"Scaled numerical data shape: {user_num.shape}")
 
         user_vec = np.hstack([user_cat, user_num]).astype("float32")
-        logger.debug(f"결합된 사용자 벡터 shape: {user_vec.shape}")
+        logger.debug(f"Combined user vector shape: {user_vec.shape}")
 
         user_latent = encoder.predict(user_vec)
-        logger.debug(f"잠재 공간 벡터 user_latent shape: {user_latent.shape}")
+        logger.debug(f"User latent vector shape: {user_latent.shape}")
 
         cos_sim = cosine_similarity(user_latent, latent_vectors)[0]
-        logger.debug(f"유사도 샘플 (상위 5): {np.sort(cos_sim)[-5:][::-1]}")
+        logger.debug(f"Sample similarities (top 5): {np.sort(cos_sim)[-5:][::-1]}")
 
         sims_sorted = np.sort(cos_sim)[::-1]
         ranks = np.arange(1, len(cos_sim) + 1)
@@ -72,20 +73,20 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
             ranks, sims_sorted, curve="convex", direction="decreasing"
         )
         k = kneedle.knee or per_k
-        logger.info(f"[recommend_improvements] facility={facility}, elbow_k={k}")
+        logger.info(
+            f"[recommend_improvements] facility={facility}, determined elbow_k={k} (AI inference)"
+        )
 
         idxs = np.argsort(cos_sim)[-k:][::-1]
-        logger.info(f"facility별 후보 개수: {len(idxs)}")
+        logger.info(f"Number of candidates for facility: {len(idxs)}")
         cand = df.iloc[idxs].copy()
         cand["similarity"] = cos_sim[idxs]
         cand["facility"] = facility
         all_cands.append(cand)
 
     combined = pd.concat(all_cands, ignore_index=True)
-    logger.info(f"모든 후보 결합 후 shape: {combined.shape}")
+    logger.info(f"After combining all candidates, shape: {combined.shape}")
 
-    # — 클러스터 단위 집계 —
-    # 노이즈(-1) 분리
     noise = combined[combined["cluster"] == -1]
     valid = combined[combined["cluster"] != -1]
 
@@ -108,35 +109,32 @@ def recommend_improvements(input_data: dict, per_k: int = 10):
         aggregated = valid.groupby("cluster", as_index=False).agg(
             {**agg_funcs, **first_funcs}
         )
-        logger.info(f"클러스터별 집계 결과 shape: {aggregated.shape}")
+        logger.info(f"Cluster aggregation result shape: {aggregated.shape}")
         combined = pd.concat([aggregated, noise], ignore_index=True)
 
-    # 정렬 및 업종 필터
     combined = combined.sort_values("similarity", ascending=False)
     if industry:
         combined = combined[combined["업종"] == industry]
-    logger.info(f"업종 필터 적용 후 후보 shape: {combined.shape}")
+    logger.info(f"After applying industry filter, candidates shape: {combined.shape}")
 
     return combined.reset_index(drop=True)
 
 
 def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
     """
-    cand_df: recommend_improvements 반환 DataFrame
-    focus: "similarity" (정렬: 유사도) | "balanced" (정렬: 복합지표) | "roi" | "saving" | "ghg"
+    cand_df: DataFrame returned by recommend_improvements
+    focus: "similarity" (sort by similarity) | "balanced" (sort by composite score) |
+           "roi" | "saving" | "ghg"
     """
-
     if focus == "similarity":
         sorted_df = cand_df.sort_values("similarity", ascending=False)
     elif focus == "balanced":
         dfc = cand_df.copy()
         feats = ["투자비", "절감액", "투자비회수기간", "온실가스감축량"]
 
-        # 1) 각 지표별 평균을 추출
         means = {f: dfc[f].mean() for f in feats}
-        logger.debug(f"지표별 평균값: {means}")
+        logger.debug(f"Mean values for metrics: {means}")
 
-        # 2) 평균값을 min–max 정규화 (투자비, 투자비회수기간은 역정규화)
         norm_means = {}
         for f, m in means.items():
             col = dfc[f]
@@ -152,9 +150,8 @@ def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
         weights = {
             f: (norm_means[f] / total if total > 0 else 1 / len(feats)) for f in feats
         }
-        logger.debug(f"가중치: {weights}")
+        logger.debug(f"Computed weights: {weights}")
 
-        # 4) 다시 전체 행을 정규화하고 balanced_score 계산
         for f in feats:
             mn, mx = dfc[f].min(), dfc[f].max()
             if mx > mn:
@@ -177,7 +174,7 @@ def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
     elif focus == "ghg":
         sorted_df = cand_df.sort_values("온실가스감축량", ascending=False)
     else:
-        logger.error(f"알 수 없는 focus: {focus}")
+        logger.error(f"Unknown focus: {focus} (AI cannot proceed)")
         raise ValueError(f"Unknown focus: {focus}")
 
     cols = ["cluster", "개선활동명_요약", "업종", "대상설비", "개선구분"]
@@ -204,7 +201,9 @@ def recommend_by_focus(cand_df: pd.DataFrame, focus: str, k: int):
 
 
 def recommend_all(input_data: dict, per_k: int):
-    logger.info(f"recommend_all 호출 - input_data: {input_data}, per_k: {per_k}")
+    logger.info(
+        f"recommend_all called - input_data: {input_data}, per_k: {per_k} (AI-driven summary)"
+    )
     df_cand = recommend_improvements(input_data, per_k)
     solution = []
 
@@ -235,5 +234,7 @@ def recommend_all(input_data: dict, per_k: int):
             }
             solution.append(solution_item)
 
-    logger.info(f"recommend_all 반환 solution 아이템 총 개수: {len(solution)}")
+    logger.info(
+        f"recommend_all returning total number of solution items: {len(solution)}"
+    )
     return {"solution": solution}
