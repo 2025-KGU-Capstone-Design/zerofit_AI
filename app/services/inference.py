@@ -196,23 +196,26 @@ def recommend_all(input_data: dict, per_k: int):
     }
 
     for focus in ["balanced", "ghg", "saving", "roi"]:
-        # 1) Focus별 추천 결과 가져오기
         recs = recommend_by_focus(df_cand, focus, per_k)
 
-        # 2) 상위 4개만 따로 추출 후, 전체 focus에 사용할 comment 생성
         top4 = recs[:4] if len(recs) >= 4 else recs
         comment_for_focus = None
         if len(top4) >= 2:
-            # 모든 rank에 동일하게 사용할 comment를 생성
             comment_for_focus = generate_comparison_comment(focus, top4)
 
-        # 3) solution 리스트에 항목 추가 (comment_for_focus를 모든 아이템에 사용)
         for idx, item in enumerate(recs, start=1):
+            # 1위 활동의 경우에만 comment_for_focus 사용
+            score_value = (
+                item.get("balanced_score") if focus == "balanced" else item.get(focus)
+            )
+            # 랭크가 1일 때만 comment_for_focus, 아니면 None
+            comment_value = comment_for_focus if idx == 1 else None
+
             solution_item = {
                 "id": None,
                 "type": type_mapping[focus],
                 "rank": idx,
-                "score": item.get("balanced_score") if focus == "balanced" else None,
+                "score": score_value,
                 "industry": item.get("업종"),
                 "improvementType": item.get("개선구분"),
                 "facility": item.get("대상설비"),
@@ -222,7 +225,7 @@ def recommend_all(input_data: dict, per_k: int):
                 "roiPeriod": item.get("투자비회수기간"),
                 "investmentCost": item.get("투자비"),
                 "bookmark": None,
-                "comment": comment_for_focus,  # 이제 모든 rank에 동일한 comment가 들어갑니다.
+                "comment": comment_value,
             }
             solution.append(solution_item)
 
