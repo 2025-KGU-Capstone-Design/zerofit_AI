@@ -33,6 +33,9 @@ class CommentRequest(BaseModel):
 
 
 class CommentResponse(BaseModel):
+    id: int | None = (
+        None  # id는 응답에 포함될 수 있지만, 요청에는 필요하지 않으므로 None으로 설정
+    )
     type: str
     top1: str
     comparison: str
@@ -157,6 +160,7 @@ async def comment_endpoint(
 
     # 8) 최종 응답 생성
     return CommentResponse(
+        id=None,
         type=focus_type,
         top1=result_dict["top1"],
         comparison=result_dict["comparison"],
