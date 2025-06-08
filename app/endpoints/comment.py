@@ -17,7 +17,6 @@ class LLMParam(BaseModel):
     id: int
     type: str
     rank: int
-    score: float
     industry: str
     improvementType: str
     facility: str
@@ -52,7 +51,6 @@ default_body = {
             "id": 1,
             "type": "total_optimization",
             "rank": 1,
-            "score": 95.5,
             "industry": "제조업",
             "improvementType": "설비 개선",
             "facility": "보일러",
@@ -67,7 +65,6 @@ default_body = {
             "id": 2,
             "type": "total_optimization",
             "rank": 2,
-            "score": 95.5,
             "industry": "제조업",
             "improvementType": "설비 개선",
             "facility": "보일러",
@@ -82,7 +79,6 @@ default_body = {
             "id": 3,
             "type": "total_optimization",
             "rank": 3,
-            "score": 95.5,
             "industry": "제조업",
             "improvementType": "설비 개선",
             "facility": "보일러",
@@ -97,7 +93,6 @@ default_body = {
             "id": 4,
             "type": "total_optimization",
             "rank": 4,
-            "score": 95.5,
             "industry": "제조업",
             "improvementType": "설비 개선",
             "facility": "보일러",
