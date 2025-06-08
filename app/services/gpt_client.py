@@ -21,12 +21,25 @@ async def generate_comparison_comment_async(focus: str, top_items: List[dict]) -
     if not top_items:
         return {"top1": "", "comparison": ""}
 
+    if focus == "total_optimization":
+        focuskor = "최적의 종합 솔루션"
+    elif focus == "emission_reduction":
+        focuskor = "온실가스 감축량"
+    elif focus == "cost_saving":
+        focuskor = "비용 절감 효과"
+    elif focus == "roi":
+        focuskor = "투자비 회수 기간(손익 분기점)"
+    else:
+        focuskor = focus
+
     # 1) 프롬프트 구성
     prompt_lines = [
         "당신은 중소기업을 대상으로 한 탄소 배출 저감 컨설턴트이며, "
         "AI 기반 맞춤형 솔루션 추천 시스템을 운영하고 있습니다."
-        f"아래는 '{focus}' 관점에서 상위 4개 개선 활동 정보입니다:",
-        "",
+        f"아래는 '{focuskor}' 관점에서 상위 4개 개선 활동 정보입니다:",
+        "투자비와 절감액은 (백만원) 단위이며, 항상 수치 뒤에는 괄호를 포함해 (백만원) 단위를 붙여주세요.",
+        "투자비회수기간은 (년) 단위입니다.",
+        "온실가스 감축량은 (tCO2/년) 단위입니다.",
     ]
 
     # 1위 부터 4위 정보 추가
